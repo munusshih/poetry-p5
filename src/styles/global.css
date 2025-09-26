@@ -39,6 +39,14 @@ li {
     @apply bg-white text-2xl px-4 py-2 pb-1 text-center relative overflow-hidden tracking-tight;
 }
 
+.resources ul{
+    @apply flex-col;
+}
+
+.resources ul li{
+    @apply text-left text-lg w-max;
+}
+
 .getting-started li:first-child {
     @apply bg-[#AFA0FF] cursor-pointer;
 }

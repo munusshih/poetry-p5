@@ -7,7 +7,7 @@ import BackButton from "../components/BackButton.astro";
   <BackButton />
 
   <script>
-    let sheetID = "1-rGe4Pay2CRDUrB7O4yqEvgaQsd2ePNPdxqOejpIjMM";
+    let sheetID = "1YP7WB0xw4WJ3QZ3BbuR2-_iyqPzY-dVN8N-KztHCz-o";
     let tabName = "Sheet1";
     let myURL = `https://opensheet.elk.sh/${sheetID}/${tabName}`;
 
@@ -31,7 +31,14 @@ import BackButton from "../components/BackButton.astro";
 
           const iframeElem = document.createElement("iframe");
           iframeElem.classList.add("fw-sketch");
-          iframeElem.src = dataPoint.sketchLink;
+
+          // Convert /sketches/ URLs to /full/ URLs for iframe embedding
+          let sketchUrl = dataPoint.sketchLink;
+          if (sketchUrl && sketchUrl.includes("/sketches/")) {
+            sketchUrl = sketchUrl.replace("/sketches/", "/full/");
+          }
+
+          iframeElem.src = sketchUrl;
           iframeElem.width = "800";
           iframeElem.height = "400";
 
