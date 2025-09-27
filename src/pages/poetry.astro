@@ -1,143 +1,39 @@
 ---
 import BasicLayout from "../layouts/BasicLayout.astro";
 import BackButton from "../components/BackButton.astro";
+import "../styles/sketch.css";
 ---
 
 <BasicLayout title="Combinatory Poetry">
   <BackButton />
   <h1>
-    <div class="sketch-frame">
-      <iframe
-        class="sketch adjective"
-        src="https://editor.p5js.org/niktari/full/QpmP67KT8"
-        width="800px"
-        height="400px"></iframe>
-    </div>
-    <div class="sketch-frame">
-      <iframe
-        class="sketch noun"
-        src="https://editor.p5js.org/niktari/full/QpmP67KT8"
-        width="800px"
-        height="400px"></iframe>
-    </div>
-    <div class="sketch-frame">
-      <iframe
-        class="sketch verb"
-        src="https://editor.p5js.org/niktari/full/QpmP67KT8"
-        width="800px"
-        height="400px"></iframe>
-    </div>
-    <span>through the</span>
-    <div class="sketch-frame">
-      <iframe
-        class="sketch adjective"
-        src="https://editor.p5js.org/niktari/full/QpmP67KT8"
-        width="800px"
-        height="400px"></iframe>
-    </div>
-    <div>
-      <div class="sketch-frame">
-        <iframe
-          class="sketch noun"
-          src="https://editor.p5js.org/niktari/full/QpmP67KT8"
-          width="800px"
-          height="400px"></iframe>
-      </div><span>,</span>
-    </div>
-    <span>like a</span>
-    <div class="sketch-frame">
-      <iframe
-        class="sketch adjective"
-        src="https://editor.p5js.org/niktari/full/QpmP67KT8"
-        width="800px"
-        height="400px"></iframe>
-    </div>
-    <div>
-      <div class="sketch-frame">
-        <iframe
-          class="sketch noun"
-          src="https://editor.p5js.org/niktari/full/QpmP67KT8"
-          width="800px"
-          height="400px"></iframe>
-      </div><span>.</span>
-    </div>
-    <span>Everything</span>
-    <div class="sketch-frame">
-      <iframe
-        class="sketch verb"
-        src="https://editor.p5js.org/niktari/full/QpmP67KT8"
-        width="800px"
-        height="400px"></iframe>
-    </div>
-    <span>when the</span>
-    <div class="sketch-frame">
-      <iframe
-        class="sketch adjective"
-        src="https://editor.p5js.org/niktari/full/QpmP67KT8"
-        width="800px"
-        height="400px"></iframe>
-    </div>
-    <div class="sketch-frame">
-      <iframe
-        class="sketch noun"
-        src="https://editor.p5js.org/niktari/full/QpmP67KT8"
-        width="800px"
-        height="400px"></iframe>
-    </div>
-    <div>
-      <div class="sketch-frame">
-        <iframe
-          class="sketch verb"
-          src="https://editor.p5js.org/niktari/full/QpmP67KT8"
-          width="800px"
-          height="400px"></iframe>
-      </div><span>.</span>
-    </div>
+    <!-- Poem will be generated dynamically here -->
   </h1>
-  <style>
-    h1 {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
-      width: 100%;
-      font-weight: normal;
-      line-height: 2.5;
-    }
-
-    span,
-    div {
-      vertical-align: middle;
-    }
-
-    .sketch-frame {
-      position: relative;
-      display: inline-block;
-      width: 395px;
-      height: 170px;
-      overflow: hidden;
-    }
-
-    .sketch {
-      position: absolute;
-      left: -52%;
-      top: calc(-50% - 42px);
-      transform: scale(0.5);
-    }
-  </style>
   <script>
+    // ===============================================
+    // POEM TEMPLATE - Edit this to change the poem structure
+    // ===============================================
+    const poemTemplate = [
+      "I {verb} that one day I {verb} a {adjective} {noun}.",
+      "The {adjective} {noun} {verb} after {verb} up the {adjective} {noun}.",
+      "The {noun} is {verb} if I am {adjective}.",
+      "the act of {noun} {verb} {adjective}.",
+    ];
+
+    // ===============================================
+    // DATA FETCHING AND SETUP
+    // ===============================================
     let sheetID = "1YP7WB0xw4WJ3QZ3BbuR2-_iyqPzY-dVN8N-KztHCz-o";
     let tabName = "Sheet1";
     let myURL = `https://opensheet.elk.sh/${sheetID}/${tabName}`;
-
-    let adjs = document.querySelectorAll(".adjective");
-    let nouns = document.querySelectorAll(".noun");
-    let verbs = document.querySelectorAll(".verb");
 
     async function getData() {
       try {
         let response = await fetch(myURL);
         let data = await response.json();
+
+        console.log("Fetched data:", data); // Debug log
+        console.log("Sample item:", data[0]); // Debug log
 
         let adjectiveData = data.filter(
           (item) => item.wordClass === "adjective"
@@ -145,31 +41,96 @@ import BackButton from "../components/BackButton.astro";
         let nounData = data.filter((item) => item.wordClass === "noun");
         let verbData = data.filter((item) => item.wordClass === "verb");
 
-        generateSketches(adjs, adjectiveData);
-        generateSketches(nouns, nounData);
-        generateSketches(verbs, verbData);
+        console.log("Filtered data:", { adjectiveData, nounData, verbData }); // Debug log
+
+        generatePoem(adjectiveData, nounData, verbData);
       } catch (error) {
-        console.error(error);
+        console.error("Error fetching data:", error);
       }
     }
 
-    function generateSketches(elements, wordData) {
-      if (wordData.length === 0) {
-        console.warn("No matching data found.");
-        return;
+    function generatePoem(adjectiveData, nounData, verbData) {
+      const container = document.querySelector("h1");
+      container.innerHTML = ""; // Clear existing content
+
+      poemTemplate.forEach((line) => {
+        // Split line by word type patterns and text
+        const parts = line.split(/(\{[^}]+\})/);
+
+        parts.forEach((part) => {
+          if (part.startsWith("{") && part.endsWith("}")) {
+            // This is a word type placeholder
+            const wordType = part.slice(1, -1); // Remove { }
+            const iframe = createSketchIframe(
+              wordType,
+              adjectiveData,
+              nounData,
+              verbData
+            );
+            container.appendChild(iframe);
+          } else if (part.trim()) {
+            // This is regular text
+            const span = document.createElement("span");
+            span.textContent = part;
+            container.appendChild(span);
+          }
+        });
+      });
+    }
+
+    function createSketchIframe(wordType, adjectiveData, nounData, verbData) {
+      let wordData;
+      switch (wordType) {
+        case "adjective":
+          wordData = adjectiveData;
+          break;
+        case "noun":
+          wordData = nounData;
+          break;
+        case "verb":
+          wordData = verbData;
+          break;
+        default:
+          console.warn(`Unknown word type: ${wordType}`);
+          return createPlaceholderElement(wordType);
       }
 
-      elements.forEach((el) => {
-        let randomItem = wordData[Math.floor(Math.random() * wordData.length)];
-        let sketchUrl = randomItem.sketchLink;
+      if (!wordData || wordData.length === 0) {
+        console.warn(`No data found for word type: ${wordType}`, wordData);
+        return createPlaceholderElement(wordType);
+      }
 
-        // Convert /sketches/ URLs to /full/ URLs for iframe embedding
-        if (sketchUrl && sketchUrl.includes("/sketches/")) {
-          sketchUrl = sketchUrl.replace("/sketches/", "/full/");
-        }
+      // Create sketch frame
+      const frame = document.createElement("div");
+      frame.className = "sketch-frame";
 
-        el.src = sketchUrl;
-      });
+      // Create iframe
+      const iframe = document.createElement("iframe");
+      iframe.className = `sketch ${wordType}`;
+      iframe.width = "800";
+      iframe.height = "400";
+
+      // Get random sketch URL and convert if needed
+      const randomItem = wordData[Math.floor(Math.random() * wordData.length)];
+      let sketchUrl = randomItem.sketchLink;
+
+      // Convert /sketches/ URLs to /full/ URLs for iframe embedding
+      if (sketchUrl && sketchUrl.includes("/sketches/")) {
+        sketchUrl = sketchUrl.replace("/sketches/", "/full/");
+      }
+
+      iframe.src = sketchUrl;
+      frame.appendChild(iframe);
+
+      return frame;
+    }
+
+    function createPlaceholderElement(wordType) {
+      const span = document.createElement("span");
+      span.textContent = `[${wordType}]`;
+      span.style.border = "1px solid red";
+      span.style.padding = "4px";
+      return span;
     }
 
     getData();
